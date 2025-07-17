@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <math.h>
-
+#include <stdlib.h>
 #include "wave.h"
 
 void main(int argc, char * argv[]) {

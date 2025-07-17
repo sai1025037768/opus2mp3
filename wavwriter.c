@@ -1,5 +1,7 @@
 #include "wavwriter.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 long getFileSize(char* filename){
     FILE *fp = fopen(filename, "r");

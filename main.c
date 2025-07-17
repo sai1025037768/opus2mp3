@@ -12,9 +12,9 @@
 
 #define MAX_PACKET 1500
 
-#define WRITE_BUFFER_SIZE 520
-#define READ_BUFFER_SIZE 40
-#define DECODE_OUTPUT_SIZE 320
+#define WRITE_BUFFER_SIZE 1280
+#define READ_BUFFER_SIZE 80
+#define DECODE_OUTPUT_SIZE 640
 
 /**判断str1是否以str2开头
  * 如果是返回1
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     }
     
     fbytes = (unsigned char*)malloc(WRITE_BUFFER_SIZE);
-    out = (short *)malloc(640 * sizeof(short));
+    out = (short *)malloc(1280 * sizeof(short));
     lame_global_flags *lame = NULL;
     if(isWav >= 0){
         lame = lame_init();
@@ -127,17 +127,23 @@ int main(int argc, char **argv)
     
     int i = 0;
     int flag = 0;
+    int total_read = 0;
     while (1)
     {
     gettimeofday(&tv,NULL);
     long startDec = tv.tv_sec*1000000 + tv.tv_usec;
     unsigned char data[READ_BUFFER_SIZE];
     num_read = fread(data, 1, READ_BUFFER_SIZE, fin);
-        
+    printf("num_read = %d\n",num_read);    
+    total_read += num_read;
     if (num_read > 0)
     {
+        int nb_samples = opus_packet_get_nb_samples(data, num_read, sampleRateInHz);
+        printf("包内采样点数: %d\n", nb_samples);
         int output_samples = opus_decode(pOpusDec, data, num_read, out, DECODE_OUTPUT_SIZE, 0);
+        printf("解码输出采样点数: %d\n", output_samples);
         if(isWav > 0){
+            printf("output_samples = %d\n",output_samples);
             if (fwrite(out, 2, output_samples, fout) != (unsigned)(output_samples)){
                 printf("write wav error,output_samples = %d\n",output_samples);
                 goto failure;
@@ -175,7 +181,8 @@ int main(int argc, char **argv)
     }
     gettimeofday(&tv,NULL);
     long endDec = tv.tv_sec*1000000 + tv.tv_usec;   
-    //printf("decode %d speend:%lld\n", i++, endDec - startDec);    
+    //printf("decode %d speend:%lld\n", i++, endDec - startDec); 
+    
     }
     fclose(fout);
 failure:
@@ -190,5 +197,6 @@ failure:
     gettimeofday(&tv,NULL);
     long end = tv.tv_sec*1000000 + tv.tv_usec;
     printf("spend  = %ld\n", end - start);
+    printf("total_read = %d\n",total_read);
 return 0;
 }
